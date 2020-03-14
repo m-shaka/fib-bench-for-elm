@@ -1,0 +1,129 @@
+<link rel="stylesheet" href="https://unpkg.com/@prantlf/astrobench@1.1.0/dist/astrobench.min.css">
+<script src="https://unpkg.com/@prantlf/astrobench@1.1.0/dist/astrobench.min.js"></script>
+
+<div id="astrobench">
+    <div class='fn-suites'></div>
+</div>
+
+<script>
+    function F(arity, fun, wrapper) {
+        wrapper.a = arity;
+        wrapper.f = fun;
+        return wrapper;
+    }
+
+    function F3(fun) {
+        return F(3, fun, function (a) {
+            return function (b) { return function (c) { return fun(a, b, c); }; };
+        });
+    }
+
+    function A3(fun, a, b, c) {
+        return fun.a === 3 ? fun.f(a, b, c) : fun(a)(b)(c);
+    }
+
+    var helper = function (m, acc, acc2) {
+        helper:
+        while (true) {
+            switch (m) {
+                case 0:
+                    return acc;
+                case 1:
+                    return acc2;
+                default:
+                    var $temp$m = m - 1,
+                        $temp$acc = acc2,
+                        $temp$acc2 = acc + acc2;
+                    m = $temp$m;
+                    acc = $temp$acc;
+                    acc2 = $temp$acc2;
+                    continue helper;
+            }
+        }
+    }
+
+    var fib = function (n) {
+        return helper(n, 0, 1)
+    }
+
+    var helperWrapped = F3(
+        function (m, acc, acc2) {
+            helperWrapped:
+            while (true) {
+                switch (m) {
+                    case 0:
+                        return acc;
+                    case 1:
+                        return acc2;
+                    default:
+                        var $temp$m = m - 1,
+                            $temp$acc = acc2,
+                            $temp$acc2 = acc + acc2;
+                        m = $temp$m;
+                        acc = $temp$acc;
+                        acc2 = $temp$acc2;
+                        continue helperWrapped;
+                }
+            }
+        }
+    );
+
+    var fibWrapped = function (n) {
+        return helperWrapped(n, 0, 1)
+    }
+
+    var fibLet = function (n) {
+        var helper_ = function (m, acc, acc2) {
+            helper_:
+            while (true) {
+                switch (m) {
+                    case 0:
+                        return acc;
+                    case 1:
+                        return acc2;
+                    default:
+                        var $temp$m = m - 1,
+                            $temp$acc = acc2,
+                            $temp$acc2 = acc + acc2;
+                        m = $temp$m;
+                        acc = $temp$acc;
+                        acc2 = $temp$acc2;
+                        continue helper_;
+                }
+            }
+        };
+        return helper_(n, 0, 1)
+    }
+
+
+    var fibLetWrapped = function (n) {
+        var helper_ = F3(
+            function (m, acc, acc2) {
+                helper_:
+                while (true) {
+                    switch (m) {
+                        case 0:
+                            return acc;
+                        case 1:
+                            return acc2;
+                        default:
+                            var $temp$m = m - 1,
+                                $temp$acc = acc2,
+                                $temp$acc2 = acc + acc2;
+                            m = $temp$m;
+                            acc = $temp$acc;
+                            acc2 = $temp$acc2;
+                            continue helper_;
+                    }
+                }
+            });
+        return A3(helper_, n, 0, 1)
+    }
+
+    suite('A suite', suite => {
+        bench('fib', () => fib(1))
+        bench('fibLet', () => fibLet(1))
+        bench('fibWrapped', () => fibWrapped(1))
+        bench('fibLetWrapped', () => fibLetWrapped(1))
+    })
+</script>
